@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+  
+    <meta charset="utf-8">
+
+    <title>AppSettings to Azure App Service Configuration</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Convert appSettings.json to the format expacted by the advanced edit feature, found in Azure App Services → Configuration.">
+  
+    <style>
+
+      :root { font-size: 16px; font-family: Helvetica, Arial, sans-serif }
+      * { box-sizing: border-box;  }
+      body { margin: 0 auto; }
+      header, main, footer, hr { width: 320px;margin: 0 auto; }
+      hr { height: 1px; margin: .5rem auto; border:none;  border-top: 1px solid;}
+      div { padding: 1rem; }
+      li, p { margin: .5rem  0 .5rem 0;}
+      pre { font-size: .75rem; max-width: 100%;;}
+      [type=file] { visibility: hidden; position: absolute; width: .1px; height: .1px; }
+      label, button { text-decoration: underline; color: blue; cursor: pointer; background:none;border:none; display:inline-block; font-size: 1rem; margin: 0; padding: 0;}
+      @media only screen and (min-width: 480px) { header, main, footer, hr { width: 480px; } }
+      @media only screen and (min-width: 640px) { header, main, footer, hr { width: 640px; } }
+
+    </style>
+
+    <script src="index.js"></script>
+  
+  </head>
+
+  <body>
+
+    <header>
+
+      <h1>AppSettings to Azure App Service Configuration</h1>
+  
+      <p>Convert <code>appSettings.json</code> to the format expacted by the <a title="Link to 'Edit connection strings in bulk' on docs.microsoft.com." href="https://docs.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal#edit-connection-strings-in-bulk">advanced edit feature</a>, found in Azure App Services → Configuration.</p>
+
+    </header>
+
+    <hr>
+
+    <main>
+  
+      <details id="input" open>
+
+        <summary>Input</summary>
+
+        <hr>
+
+        <div>
+
+          <p>Options:</p>
+
+          <ul>
+            <li><button id="paste" title="Paste text from clip-board" aria-label="Click this button to paste the current text of your clip-board into this document.">Paste JSON</button> into this document - Ctrl+V</li>
+            <li><label aria-label="Click this label to select appSetting.json file."><input type="file" accept=".json" aria-hidden="true">Select JSON file.</label></li>
+            <li><button id="test" title="Use test data." aria-label="Click this button to use test data.">Use test data</button></li>
+
+          </ul>    
+          
+        </div>
+
+      </details>
+
+      <hr>
+
+      <details id="output">
+
+        <summary>Output</summary>
+
+        <hr>
+
+        <div>
+          <button>Copy result to clip-board</button>
+          <pre>Result will appear here after converting data.</pre>  
+        </div>    
+
+      </details>
+
+    </main>
+    
+    <hr>
+
+    <footer> 
+      <p>This thing should not be used with production  data. </p>
+      <p>Hosted and served by <a href="https://github.com/hallojoe/AppSettingsToAzureConfiguration" title="Link to this code's GitHub repository.">Github</a>.</p>
+    </footer>
+
+    <script>
+
+      const testAppSettingsData = `
+      {
+        "AppIdentitySettings": {
+          "User": {
+            "RequireUniqueEmail": true
+          },
+          "Password": {
+            "RequiredLength": 6,
+            "RequireLowercase": true,
+            "RequireUppercase": true,
+            "RequireDigit": true,
+            "RequireNonAlphanumeric": true
+          },
+          "Lockout": {
+            "ExcludedRoles": ["admin", "editor"],
+            "AllowedForNewUsers": true,
+            "DefaultLockoutTimeSpanInMins": 30,
+            "MaxFailedAccessAttempts": 5
+          }
+        }
+      }`
+
+      const inputFile = document.querySelector("[type=file]")
+      const buttonPasteData = document.querySelector("#paste")
+      const buttonTestData = document.querySelector("#test")
+
+      const pre = document.querySelector("pre")
+
+      const detailsInput = document.querySelector("#input")
+      const detailsOutput = document.querySelector("#output")
+
+
+      function readFile(file) {
+
+        const reader = new FileReader()
+
+        return new Promise((resolve, reject) => {
+
+          reader.onload = (event) => resolve(event.target.result)
+
+          reader.onerror = reject
+
+          return reader.readAsText(file)
+          
+        })
+
+      }
+
+      function processInput(input) {
+
+        if(!input) return
+
+        try {
+
+          const flattenedObject = toAzureConfigurationValues(JSON.parse(input))
+
+          output = JSON.stringify(flattenedObject, null, "  ")
+
+          if(navigator.clipboard) navigator.clipboard.writeText(output);
+          navigator.clipboard.re
+        } 
+        catch(error) {
+
+          output = `An error occurred. Ensure pasted text is valid JSON. ${error}.`
+
+        }
+
+        detailsOutput.setAttribute("open", null)
+
+        pre.innerText = output
+
+      }
+
+      buttonTestData.addEventListener("click", event => {
+
+        processInput(testAppSettingsData)
+
+      })
+
+      buttonPasteData.addEventListener("click", _ => {
+
+        if(navigator.clipboard) {
+          document.body.focus()
+          navigator.clipboard.readText().then((input) => processInput(input))
+        }
+
+      })
+
+      inputFile.addEventListener("change", event => {
+
+        const files = inputFile.files
+
+        if(!files || files.length === 0) return
+
+        const file = files[0]
+
+        readFile(file).then(input => processInput(input))
+        
+      })
+
+      document.addEventListener("paste", event => {
+
+          event.preventDefault()
+
+          const input = (event.clipboardData || window.clipboardData).getData("text")
+
+          processInput(input)
+          
+      })
+
+    </script>
+
+  </body>
+</html>
