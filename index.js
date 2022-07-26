@@ -33,8 +33,8 @@ function toAzureConfigurationValues(appSettings) {
   const mappedFlatAppSettings = Object.keys(flatAppSettings).map(flatAppSettingKey => {
 
     return {
-      key: flatAppSettingKey, 
-      value: flatAppSettings[flatAppSettingKey], 
+      name: flatAppSettingKey, 
+      value: flatAppSettings[flatAppSettingKey].toString(), 
       slotSetting: false 
     }
 
