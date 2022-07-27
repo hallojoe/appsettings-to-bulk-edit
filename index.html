@@ -5,7 +5,7 @@
   
     <meta charset="utf-8">
 
-    <title>AppSettings to Azure App Service Configuration</title>
+    <title>Convert appSetting.json to Azure App Service Configuration</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Convert appSettings.json to the format expacted by the advanced edit feature, found in Azure App Services → Configuration.">
@@ -75,7 +75,7 @@
         <hr>
 
         <div>
-          <button>Copy result to clip-board</button>
+          <button id="copy">Copy result to clip-board</button>
           <pre>Result will appear here after converting data.</pre>  
         </div>    
 
@@ -87,7 +87,7 @@
 
     <footer> 
       <p>This thing should not be used with production  data. </p>
-      <p>Hosted and served by <a href="https://github.com/hallojoe/AppSettingsToAzureConfiguration" title="Link to this code's GitHub repository.">Github</a>.</p>
+      <p>Hosted and served by <a href="https://github.com/hallojoe/appsettings-to-bulk-edit" title="Link to this code's GitHub repository.">Github</a>.</p>
     </footer>
 
     <script>
@@ -117,12 +117,14 @@
       const inputFile = document.querySelector("[type=file]")
       const buttonPasteData = document.querySelector("#paste")
       const buttonTestData = document.querySelector("#test")
+      const buttonCopyData = document.querySelector("#copy")
 
       const pre = document.querySelector("pre")
 
       const detailsInput = document.querySelector("#input")
       const detailsOutput = document.querySelector("#output")
 
+      let previousData = ""
 
       function readFile(file) {
 
@@ -150,8 +152,8 @@
 
           output = JSON.stringify(flattenedObject, null, "  ")
 
-          if(navigator.clipboard) navigator.clipboard.writeText(output);
-          navigator.clipboard.re
+          previousData = output
+
         } 
         catch(error) {
 
@@ -168,6 +170,22 @@
       buttonTestData.addEventListener("click", event => {
 
         processInput(testAppSettingsData)
+
+      })
+
+      buttonCopyData.addEventListener("click", event => {
+
+        const text = buttonCopyData.innerText
+
+        if(navigator.clipboard) {
+          navigator.clipboard.writeText(previousData)
+          buttonCopyData.innerText = "Copied"
+        }
+        else buttonCopyData.innerText = "Not supported"
+        
+        setTimeout(_ => {
+          buttonCopyData.innerText = text
+        }, 2000)
 
       })
 
